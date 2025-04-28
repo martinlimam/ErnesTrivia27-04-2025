@@ -1,10 +1,10 @@
 // ============================================================
-//           SCRIPT COMPLETO PARA TRIVIA v7 - Preguntas Actualizadas T4 y T8
+//           SCRIPT COMPLETO PARA TRIVIA v8 - Sin contador en Dropdown
 // ============================================================
 
 // --- Base de Datos de Preguntas (AGRUPADAS POR TEMA - Actualizado T4 y T8) ---
 const baseDePreguntasPorTema = {
-    // Clave 'tema2' corresponde a Tema 2 - Miembros de la comunidad escolar (Sin cambios)
+    // Clave 'tema2' corresponde a Tema 2 - Miembros de la comunidad escolar
     tema2: [
         { pregunta: "¿Quién enseña y orienta a los estudiantes en la escuela?", opciones: ["Director", "Secretario", "Profesor", "Bibliotecario"], respuesta: 2 },
         { pregunta: "¿Cuál es la función principal de los directores en la escuela?", opciones: ["Organizar documentos", "Administrar el colegio", "Enseñar a los alumnos", "Mantener la limpieza"], respuesta: 1 },
@@ -17,7 +17,7 @@ const baseDePreguntasPorTema = {
         { pregunta: "El personal de servicios se encarga principalmente de:", opciones: ["Orientar a los estudiantes", "Mantener limpia la escuela", "Enseñar materias", "Organizar reuniones escolares"], respuesta: 1 },
         { pregunta: "¿Quiénes reciben enseñanzas para aplicarlas a su vida diaria?", opciones: ["Profesores", "Secretarios", "Estudiantes", "Directores"], respuesta: 2 }
     ],
-    // Clave 'tema3' corresponde a Tema 3 - Deberes y Derechos en la escuela (Sin cambios)
+    // Clave 'tema3' corresponde a Tema 3 - Deberes y Derechos en la escuela
     tema3: [
         { pregunta: "Según los derechos de los estudiantes, ¿cómo deben ser tratados por todos los miembros de la escuela?", opciones: ["Con indiferencia", "Con respeto", "Con severidad", "Como personas iguales"], respuesta: 1 },
         { pregunta: "¿Cuál de las siguientes opciones es un deber de los estudiantes?", opciones: ["Ser valorados como personas únicas", "Ser protegidos contra todo tipo de maltrato", "Estudiar y cumplir con las tareas escolares", "Expresar su opinión y ser escuchados"], respuesta: 2 },
@@ -87,10 +87,9 @@ try {
     sonidoFanfarria = new Audio('sounds/fanfare.mp3');
     musicaFondo = new Audio('sounds/background_music.mp3');
     musicaFondo.loop = true;
-    musicaFondo.volume = 0.3; // Ajusta si es necesario
+    musicaFondo.volume = 0.3;
 } catch (e) {
     console.error("Error al cargar los archivos de audio:", e);
-    // Fallback para evitar errores si los audios no cargan
     sonidoCorrecto = sonidoIncorrecto = sonidoFanfarria = musicaFondo = { play: () => {}, pause: () => {}, currentTime: 0 };
 }
 
@@ -106,67 +105,54 @@ function mostrarPantallaInicio() {
         musicaFondo.pause();
         musicaFondo.currentTime = 0;
     }
-    actualizarContadorPreguntasDropdown(); // Actualizar texto del dropdown
+    // Ya no llamamos a actualizarContadorPreguntasDropdown() aquí si el HTML ya está limpio
+    // actualizarContadorPreguntasDropdown(); // Comentado o eliminado
 }
 
+// --- FUNCIÓN MODIFICADA/SIMPLIFICADA ---
+// Esta función ahora es opcional, ya que el HTML tiene el texto limpio.
+// Se deja comentada por si se quisiera reactivar o usar para otra cosa.
+/*
 function actualizarContadorPreguntasDropdown() {
     const opcionesTema = dropdownTema.options;
     for (let i = 0; i < opcionesTema.length; i++) {
         const opcion = opcionesTema[i];
-        const valorTema = opcion.value;
-        let numPreguntas = 0;
-        // Tomar solo el nombre base (antes del posible paréntesis)
-        let textoOriginal = opcion.text.split(' (')[0];
-
-        if (valorTema === 'todos') {
-            numPreguntas = 10; // Número fijo para 'todos'
-            opcion.text = `${textoOriginal} (${numPreguntas} Preguntas al Azar)`;
-        } else if (baseDePreguntasPorTema[valorTema]) {
-            numPreguntas = baseDePreguntasPorTema[valorTema].length;
-            opcion.text = `${textoOriginal} (${numPreguntas} Preguntas)`;
-        } else {
-            // Si por alguna razón el valor no coincide, dejar el texto como está
-            // o podrías ocultar la opción si lo prefieres
-        }
+        // Simplemente nos aseguramos de que use el texto base del HTML
+        // Si el HTML ya está limpio, esta función no hace nada visible.
+        // Podrías usarla para otras validaciones si fuera necesario.
+        // console.log("Verificando opción:", opcion.text);
     }
 }
-
+*/
 
 function iniciarJuego() {
     const temaSeleccionado = dropdownTema.value;
-    const NUM_PREGUNTAS_TODOS = 10; // Definimos cuántas preguntas para "todos"
+    const NUM_PREGUNTAS_TODOS = 10;
 
     if (temaSeleccionado === 'todos') {
-        // 1. Combinar todas las preguntas
         let todasLasPreguntas = [].concat(...Object.values(baseDePreguntasPorTema));
-        // 2. Barajar el array completo
         todasLasPreguntas.sort(() => Math.random() - 0.5);
-        // 3. Seleccionar las primeras N preguntas
         preguntasJuegoActual = todasLasPreguntas.slice(0, NUM_PREGUNTAS_TODOS);
         totalPreguntasJuego = NUM_PREGUNTAS_TODOS;
 
     } else if (baseDePreguntasPorTema[temaSeleccionado]) {
-        // Seleccionar las preguntas del tema específico y barajar
         preguntasJuegoActual = [...baseDePreguntasPorTema[temaSeleccionado]];
         preguntasJuegoActual.sort(() => Math.random() - 0.5);
         totalPreguntasJuego = preguntasJuegoActual.length;
     } else {
         console.error("Tema seleccionado inválido:", temaSeleccionado);
-        mostrarPantallaInicio(); // Volver al inicio si hay error
+        mostrarPantallaInicio();
         return;
     }
 
-    // Resetear estado del juego
     indicePreguntaActual = 0;
     puntaje = 0;
     preguntasRespondidas = 0;
 
-    // Ocultar inicio, mostrar juego
     if (pantallaInicio) pantallaInicio.style.display = 'none';
     if (contenedorJuego) contenedorJuego.style.display = 'block';
     if (contenedorResultado) contenedorResultado.style.display = 'none';
     if (btnReiniciar) btnReiniciar.style.display = 'none';
-
 
     actualizarEstadoJuego();
     cargarPregunta();
@@ -183,13 +169,13 @@ function cargarPregunta() {
     }
     const preguntaActual = preguntasJuegoActual[indicePreguntaActual];
     elementoPregunta.textContent = preguntaActual.pregunta;
-    contenedorOpciones.innerHTML = ''; // Limpiar opciones anteriores
+    contenedorOpciones.innerHTML = '';
 
     preguntaActual.opciones.forEach((opcion, index) => {
         const boton = document.createElement('button');
         boton.textContent = opcion;
         boton.classList.add('boton-opcion');
-        boton.dataset.index = index; // Guardar índice para referencia
+        boton.dataset.index = index;
         boton.classList.remove('correcta', 'incorrecta');
         boton.disabled = false;
         boton.style.opacity = "1";
@@ -197,12 +183,12 @@ function cargarPregunta() {
         contenedorOpciones.appendChild(boton);
     });
 
-    actualizarEstadoJuego(); // Actualizar progreso
-    if (btnSiguiente) btnSiguiente.style.display = 'none'; // Ocultar botón siguiente
+    actualizarEstadoJuego();
+    if (btnSiguiente) btnSiguiente.style.display = 'none';
 }
 
 function seleccionarOpcion(indiceSeleccionado, botonSeleccionado) {
-    if (preguntasRespondidas > indicePreguntaActual) return; // Evitar doble respuesta
+    if (preguntasRespondidas > indicePreguntaActual) return;
     preguntasRespondidas++;
 
     const preguntaActual = preguntasJuegoActual[indicePreguntaActual];
@@ -210,18 +196,15 @@ function seleccionarOpcion(indiceSeleccionado, botonSeleccionado) {
 
     const botones = contenedorOpciones.querySelectorAll('button');
     botones.forEach(boton => {
-        boton.disabled = true; // Deshabilitar todos
+        boton.disabled = true;
         let indexBoton = parseInt(boton.dataset.index);
 
-        // Marcar siempre la correcta
         if (indexBoton === indiceCorrecto) {
             boton.classList.add('correcta');
         }
-        // Marcar la incorrecta seleccionada (si no es la correcta)
         if (indexBoton === indiceSeleccionado && indexBoton !== indiceCorrecto) {
              boton.classList.add('incorrecta');
         }
-        // Atenuar las no seleccionadas e incorrectas (opcional, para claridad)
         if(indexBoton !== indiceCorrecto && indexBoton !== indiceSeleccionado) {
              boton.style.opacity = "0.6";
         }
@@ -234,40 +217,35 @@ function seleccionarOpcion(indiceSeleccionado, botonSeleccionado) {
         if (sonidoIncorrecto && sonidoIncorrecto.play) sonidoIncorrecto.play();
     }
 
-    actualizarEstadoJuego(); // Actualizar puntaje en UI
-    if (btnSiguiente) btnSiguiente.style.display = 'block'; // Mostrar botón siguiente
+    actualizarEstadoJuego();
+    if (btnSiguiente) btnSiguiente.style.display = 'block';
 }
 
 function siguientePregunta() {
     indicePreguntaActual++;
-    cargarPregunta(); // Carga la siguiente o termina el juego
+    cargarPregunta();
 }
 
 
 function terminarJuego() {
-    // Detener música de fondo primero
     if (musicaFondo && !musicaFondo.paused) {
         musicaFondo.pause();
         musicaFondo.currentTime = 0;
     }
 
-    // Calcular porcentaje ANTES de decidir si reproducir fanfarria
     let porcentaje = totalPreguntasJuego > 0 ? Math.round((puntaje / totalPreguntasJuego) * 100) : 0;
 
-    // Reproducir fanfarria SOLO si el porcentaje es 70% o más
     if (porcentaje >= 70) {
         if (sonidoFanfarria && sonidoFanfarria.play) {
              sonidoFanfarria.play();
         }
     }
 
-    // Ocultar contenedor del juego y mostrar resultados
     if (contenedorJuego) contenedorJuego.style.display = 'none';
     if (contenedorResultado) {
         let mensajeFinal = "¡Tema Completado!";
         let mensajeMotivacion = "";
 
-        // Mensajes basados en el porcentaje ya calculado
         if (porcentaje >= 80) {
             mensajeMotivacion = "¡Felicidades! ¡Excelente puntaje!";
         } else if (porcentaje >= 70) {
@@ -286,7 +264,6 @@ function terminarJuego() {
         contenedorResultado.style.display = 'block';
     }
 
-    // Ocultar/Mostrar botones finales
     if (btnSiguiente) btnSiguiente.style.display = 'none';
     if (btnReiniciar) {
          btnReiniciar.textContent = "Elegir Otro Tema";
@@ -300,21 +277,19 @@ function actualizarEstadoJuego() {
         elementoPuntaje.textContent = `Puntaje: ${puntaje}`;
     }
     if (elementoProgreso && totalPreguntasJuego > 0) {
-        // Mostrar progreso solo si el juego ha comenzado y no ha terminado
         if (indicePreguntaActual < totalPreguntasJuego) {
             elementoProgreso.textContent = `Pregunta ${indicePreguntaActual + 1} de ${totalPreguntasJuego}`;
         } else {
-             // Mostrar X de X cuando se muestra la última pregunta respondida, antes de los resultados
              elementoProgreso.textContent = `Pregunta ${totalPreguntasJuego} de ${totalPreguntasJuego}`;
         }
     } else if (elementoProgreso) {
-        elementoProgreso.textContent = ''; // Limpiar si no hay juego
+        elementoProgreso.textContent = '';
     }
 }
 
 
 // --- Event Listeners ---
-// Actualizar contadores en el dropdown y mostrar pantalla de inicio al cargar
+// Mostrar pantalla de inicio al cargar. La función que actualizaba el dropdown se comenta o elimina.
 document.addEventListener('DOMContentLoaded', mostrarPantallaInicio);
 
 if (btnEmpezar) {
@@ -326,7 +301,7 @@ if (btnSiguiente) {
 }
 
 if (btnReiniciar) {
-    btnReiniciar.addEventListener('click', mostrarPantallaInicio); // Volver a la pantalla de selección
+    btnReiniciar.addEventListener('click', mostrarPantallaInicio);
 }
 
 // --- FIN DEL SCRIPT ---
